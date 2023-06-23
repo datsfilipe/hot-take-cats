@@ -17,6 +17,7 @@ export const Cat = () => {
       <img
         src={`https://cataas.com/cat/says/${phrase}`}
         alt={`Cat image with "${phrase}" phrase written.`}
+        className="max-h-screen"
       />
     </div>
   );
