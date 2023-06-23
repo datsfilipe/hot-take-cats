@@ -9,14 +9,20 @@ export const Home = () => {
   numbers.push(0);
 
   useEffect(() => {
-    if (password === "666") {
-      alert("You have unlocked the secret!");
+    if (password?.length === 3) {
+      if (password === "666") {
+        alert("You have unlocked the secret!");
 
-      setTimeout(() => {
-        navigate({
-          to: "/cat",
-        });
-      }, 1500);
+        setTimeout(() => {
+          navigate({
+            to: "/cat",
+          });
+        }, 1500);
+      } else {
+        alert("Wrong password!");
+
+        setPassword(null);
+      }
     }
   }, [password, navigate]);
 
