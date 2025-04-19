@@ -1,58 +1,87 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "@tanstack/router";
+import phrases from "../utils/phrases.json";
 
 export const Home = () => {
-  const navigate = useNavigate({ from: "/" });
-
-  const [password, setPassword] = useState<string | null>(null);
-  const numbers = Array.from(Array(9), (_, i) => i + 1);
-  numbers.push(0);
+  const [state, setState] = useState<{
+    imageData: string | null;
+    altText: string;
+    isLoading: boolean;
+  }>({
+    imageData: null,
+    altText: "Loading cat image...",
+    isLoading: true
+  });
+  const fontSize = 32;
 
   useEffect(() => {
-    if (password?.length === 3) {
-      if (password === "666") {
-        alert("You have unlocked the secret!");
+    const lastFetchTime = localStorage.getItem("catLastFetchTime");
+    const now = Date.now();
 
-        setTimeout(() => {
-          navigate({
-            to: "/cat",
-          });
-        }, 1500);
-      } else {
-        alert("Wrong password!");
+    if (lastFetchTime && now - parseInt(lastFetchTime) < 5000) {
+      const cachedImageData = localStorage.getItem("catImageData");
+      const cachedAltText = localStorage.getItem("catAltText");
 
-        setPassword(null);
+      if (cachedImageData && cachedAltText) {
+        setState({
+          imageData: cachedImageData,
+          altText: cachedAltText,
+          isLoading: false
+        });
+        return;
       }
     }
-  }, [password, navigate]);
+
+    const random = Math.floor(Math.random() * phrases.length);
+    const selectedPhrase = phrases[random];
+
+    const characterWidth = 0.6 * fontSize;
+    const textWidth = Math.ceil(selectedPhrase.length * characterWidth);
+    const imageWidth = Math.max(600, textWidth + 100);
+    const encodedPhrase = encodeURIComponent(selectedPhrase);
+
+    const url = `https://cataas.com/cat/cute/says/${encodedPhrase}?fontSize=${fontSize}&width=${imageWidth}&height=400`;
+
+    setState(prev => ({ ...prev, isLoading: true }));
+
+    fetch(url)
+      .then(response => response.blob())
+      .then(blob => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64data = reader.result;
+          if (!base64data) {
+            return;
+          }
+
+          setState({
+            imageData: base64data.toString(),
+            altText: `Cat image with text: "${selectedPhrase}"`,
+            isLoading: false
+          });
+
+          localStorage.setItem("catImageData", base64data.toString());
+          localStorage.setItem("catAltText", `Cat image with text: "${selectedPhrase}"`);
+          localStorage.setItem("catLastFetchTime", now.toString());
+        };
+        reader.readAsDataURL(blob);
+      })
+      .catch(error => {
+        console.error("Error fetching cat image:", error);
+        setState(prev => ({ ...prev, isLoading: false }));
+      });
+  }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <h1 className="text-4xl font-bold">Enter THE 3 digits password</h1>
-      <p className="font-medium text-2xl mt-4 mb-2">
-        {password ? password : "..."}
-      </p>
-      <div className="max-w-4xl grid grid-cols-3 gap-4 mt-4">
-        {numbers.map((number) => (
-          <button
-            key={number}
-            onClick={() => {
-              setPassword(password ? password + number : number.toString());
-            }}
-            className="bg-gray-200 hover:bg-gray-300 text-2xl text-neutral-950 font-bold rounded-lg w-20 py-2 m-4 mx-auto"
-          >
-            {number}
-          </button>
-        ))}
-        <button
-          onClick={() => {
-            setPassword(null);
-          }}
-          className="material-symbols-outlined bg-gray-200 hover:bg-gray-300 text-4xl text-neutral-950 font-bold rounded-lg py-2 m-4 mx-auto col-span-2 w-full"
-        >
-          backspace
-        </button>
-      </div>
+    <div className="w-full h-full flex justify-center items-center">
+      {state.isLoading ? (
+        <p>Loading cute cat...</p>
+      ) : state.imageData ? (
+        <img
+          src={state.imageData}
+          alt={state.altText}
+          className="max-h-screen max-w-full"
+        />
+      ) : null}
     </div>
   );
 };
