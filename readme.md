@@ -4,7 +4,7 @@ _Cat's saying their tech takes_
 
 ## Visit
 
-[https://safe-cats.vercel.app](https://safe-cats.vercel.app/)
+[hot-take-cats.vercel.app](https://hot-take-cats.vercel.app/)
 
 ## Run locally
 
