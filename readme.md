@@ -1,4 +1,4 @@
-# Safe Cats
+# Hot Take Cats
 
 _Cat's saying their tech takes_
 
